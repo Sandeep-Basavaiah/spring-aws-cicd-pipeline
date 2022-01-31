@@ -1,0 +1,18 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Docker Hub...
+      # Type the command to log in to your Docker Hub account here.
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - ./mvnw spring-boot:build-image
+      - docker tag spring-petclinic:2.6.0-SNAPSHOT cloudablaze/spring-petclinic:latest
+      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push cloudablaze/spring-petclinic:latest
