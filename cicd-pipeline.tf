@@ -9,9 +9,10 @@ resource "aws_codebuild_project" "build-docker" {
 
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "hashicorp/terraform:latest"
+    image                       = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
     type                        = "LINUX_CONTAINER"
-    image_pull_credentials_type = "SERVICE_ROLE"
+    privileged_mode             = true
+    # image_pull_credentials_type = "SERVICE_ROLE"
     # registry_credential{
     #     credential = var.dockerhub_credentials
     #     credential_provider = "SECRETS_MANAGER"
@@ -124,6 +125,21 @@ resource "aws_codepipeline" "cicd_pipeline" {
                 BranchName   = "main"
                 ConnectionArn = var.codestar_connector_credentials
                 OutputArtifactFormat = "CODE_ZIP"
+            }
+        }
+    }
+
+    stage {
+        name ="DockerBuild"
+        action{
+            name = "Build"
+            category = "Build"
+            provider = "CodeBuild"
+            version = "1"
+            owner = "AWS"
+            input_artifacts = ["tf-code"]
+            configuration = {
+                ProjectName = "build-docker"
             }
         }
     }
