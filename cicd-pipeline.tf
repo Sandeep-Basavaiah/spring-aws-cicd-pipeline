@@ -37,12 +37,13 @@ resource "aws_codebuild_project" "tf-plan" {
     compute_type                = "BUILD_GENERAL1_SMALL"
     # image                       = "hashicorp/terraform:0.14.3"
     image                       = "hashicorp/terraform:latest"
+    # image                       = "aws/codebuild/standard:2.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "SERVICE_ROLE"
-    # registry_credential{
-    #     credential = var.dockerhub_credentials
-    #     credential_provider = "SECRETS_MANAGER"
-    # }
+    registry_credential{
+        credential = var.dockerhub_credentials
+        credential_provider = "SECRETS_MANAGER"
+    }
  }
  source {
      type   = "CODEPIPELINE"
@@ -64,10 +65,10 @@ resource "aws_codebuild_project" "tf-apply" {
     image                       = "hashicorp/terraform:latest"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "SERVICE_ROLE"
-    # registry_credential{
-    #     credential = var.dockerhub_credentials
-    #     credential_provider = "SECRETS_MANAGER"
-    # }
+    registry_credential{
+        credential = var.dockerhub_credentials
+        credential_provider = "SECRETS_MANAGER"
+    }
  }
  source {
      type   = "CODEPIPELINE"
@@ -89,10 +90,10 @@ resource "aws_codebuild_project" "tf-destroy" {
     image                       = "hashicorp/terraform:latest"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "SERVICE_ROLE"
-    # registry_credential{
-    #     credential = var.dockerhub_credentials
-    #     credential_provider = "SECRETS_MANAGER"
-    # }
+    registry_credential{
+        credential = var.dockerhub_credentials
+        credential_provider = "SECRETS_MANAGER"
+    }
  }
  source {
      type   = "CODEPIPELINE"
@@ -145,6 +146,21 @@ resource "aws_codepipeline" "cicd_pipeline" {
     }
 
     stage {
+        name ="Destroy"
+        action{
+            name = "Destroy"
+            category = "Build"
+            provider = "CodeBuild"
+            version = "1"
+            owner = "AWS"
+            input_artifacts = ["tf-code"]
+            configuration = {
+                ProjectName = "tf-cicd-destroy"
+            }
+        }
+    }
+
+    stage {
         name ="Plan"
         action{
             name = "Build"
@@ -185,19 +201,19 @@ resource "aws_codepipeline" "cicd_pipeline" {
         }
     }
 
-    stage {
-        name ="Destroy"
-        action{
-            name = "Destroy"
-            category = "Build"
-            provider = "CodeBuild"
-            version = "1"
-            owner = "AWS"
-            input_artifacts = ["tf-code"]
-            configuration = {
-                ProjectName = "tf-cicd-destroy"
-            }
-        }
-    }
+    # stage {
+    #     name ="Destroy"
+    #     action{
+    #         name = "Destroy"
+    #         category = "Build"
+    #         provider = "CodeBuild"
+    #         version = "1"
+    #         owner = "AWS"
+    #         input_artifacts = ["tf-code"]
+    #         configuration = {
+    #             ProjectName = "tf-cicd-destroy"
+    #         }
+    #     }
+    # }
 
 }
